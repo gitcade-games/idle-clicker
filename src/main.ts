@@ -2,8 +2,8 @@
  * Idle Clicker bootstrap (host glue). The GAME is data — game.json + config.json +
  * src/scenes/{title,play}.json composing the library `currency` + `upgrade-tree`
  * economy with four small custom economy systems (`click-to-earn`, `auto-income`,
- * `interval-bonus`, `prestige` — the idle loop the action library doesn't cover;
- * logged in LIBRARY-GAPS.md). 100% of the balance is in config.json. Flow is
+ * `interval-bonus`, `prestige` — the idle loop the action library doesn't cover).
+ * 100% of the balance is in config.json. Flow is
  * `title → play`, also data.
  *
  * What lives host-side (no data primitive covers it):
@@ -15,7 +15,7 @@
  *   • the offline-credit shim: a timestamp + a credit formula on top of the value
  *     persistence — see `armOfflineCredit` below.
  */
-import { createGame } from "@gitcade/sdk";
+import { createGame, powInt } from "@gitcade/sdk";
 import type { World } from "@gitcade/sdk";
 import { createLibraryRegistry, LibraryAudioPlayer, ScreenEffects, attachScreenEffects, formatCompact, cappedOfflineGain } from "@gitcade/library";
 import manifest from "../game.json";
@@ -71,7 +71,9 @@ document.querySelectorAll<HTMLButtonElement>("#idlebar button[data-up]").forEach
 const shopLabelCache = new Map<string, string>();
 
 function nextCost(cost: number, growth: number, owned: number): number {
-  return Math.round(cost * Math.pow(growth > 0 ? growth : 1, owned));
+  // Cross-engine-deterministic integer power (owned is a level count) — the standing rule for
+  // systems-layer curves; keeps a host-computed cost identical on every engine.
+  return Math.round(cost * powInt(growth > 0 ? growth : 1, owned));
 }
 function updateShop(w: World): void {
   const coins = (w.state.coins as number) ?? 0;
